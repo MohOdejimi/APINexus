@@ -35,7 +35,7 @@ module.exports = {
     deleteService: async (req, res) => {
         try {
             const { token, url, path } = req.body
-            console.log(req.body, "ready to delete")
+
             const query = {
                 token: token,
                 url: url,
@@ -51,5 +51,31 @@ module.exports = {
         } catch (err) {
             res.status(500).json({error: err.message})
         }
-    }       
+    },
+    updateService: async (req, res) => {
+        try {
+            const { token, path, url, newPath, newUrl } = req.body 
+
+            const query = {}
+            if(token) query.token = token
+            if(path) query.path = path
+            if(url) query.url = url
+
+            const update = {}
+            if(newPath) update.path = newPath
+            if(newUrl) update.url = newUrl
+
+            const options = { new: true }
+
+            const updatedService = await Services.findOneAndUpdate(query, update, options);
+
+            if(updatedService) {
+                res.json({ message: 'Service updated successfully', updatedService });
+            } else {
+                res.status(404).json({ message: 'Service not found' });
+            }
+        } catch (error) {
+            res.status(500).json({error: error.message})
+        }
+    }   
 }

@@ -8,6 +8,18 @@ const { v4: uuidv4 } = require('uuid');
 const program = new Command()
 const apiBaseUrl = 'http://localhost:2121' //apiNexus
 
+function pathResolve(path) {
+    if (!path) {
+        return null;
+    }
+    let servicePath = path 
+    if (servicePath.startsWith('C:/Program Files/Git/')) {
+        servicePath = servicePath.replace('C:/Program Files/Git', '');
+    }
+    servicePath = servicePath.replace(/\\/g, '/');
+    return (servicePath) ? servicePath : null
+}
+
 program 
         .command('create-token')
         .description('Create a jwt token')
@@ -112,6 +124,39 @@ program
             }
         })   
         
+program
+        .command('update-service')
+        .description('Update a backend service')
+        .requiredOption('--token <token>', 'JWT token for the service')
+        .option('--path <path>', 'Path of service to update')
+        .option('--newPath <newPath>', 'New Path for the service')
+        .option('--url <url>', 'Url of service to update')
+        .option('--newUrl <newUrl>', 'New Url for the service')
+        .action(async (options) => {
+            try {
+                if (!options.path && !options.url) {
+                    throw new Error('Please provide either --path or --url of the service to update.');
+                }
+                if (!options.newPath && !options.newUrl) {
+                    throw new Error('Please provide either --newPath or --newUrl for the service.');
+                }
+    
+                const payload = {
+                    token: options.token,
+                };
+                if (options.path) payload.path = pathResolve(options.path);
+                if (options.url) payload.url = options.url;
+                if (options.newPath) payload.newPath = pathResolve(options.newPath);
+                if (options.newUrl) payload.newUrl = options.newUrl;
+    
+                const response = await axios.put(`${apiBaseUrl}/config/service`, payload);
+    
+                console.log('Service has been updated', response.data);
+            } catch (error) {
+                console.error(error.response?.data || error.message || error);
+            }
+        });
+          
 program
         .command('test-route')
         .description('Test a specific route')
