@@ -3,6 +3,7 @@ require('dotenv').config({path: './configs/.env'})
 const express = require('express')
 const axios = require('axios')
 const app = express()
+const rateLimiter = require('./rate-limiter/rateLimiter')
 const requestHandler = require('./middlewares/request-Handler')
 
 //Config DB
@@ -14,6 +15,7 @@ const configRoutes = require('./routes/config')
 
 //Middlewares
 app.use(express.json())
+app.use(rateLimiter)
 app.use('/config', configRoutes)
 
 app.all('/*', requestHandler)
